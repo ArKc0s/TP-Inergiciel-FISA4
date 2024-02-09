@@ -1,0 +1,87 @@
+---
+version: '2'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  broker:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: broker
+    container_name: broker
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+  mc:
+    image: mirth450:latest
+    container_name: mirth450
+    hostname: mirth450
+    restart: always
+    environment:
+      - DATABASE=postgres
+      - DATABASE_URL=jdbc:postgresql://mcdb:5432/mirthdb
+      - DATABASE_MAX_CONNECTIONS=20
+      - DATABASE_USERNAME=mirthdb
+      - DATABASE_PASSWORD=mirthdb
+      - VMOPTIONS=-Xmx512m
+    volumes:
+      - "./mirth/appdata:/opt/connect/appdata"
+      - "./mirth/custom-extensions:/opt/connect/custom-extensions"
+      - "./mirth/hl7:/opt/hl7"
+      - "./mirth/logs:/opt/connect/logs"
+    ports:
+      - "8081:8080/tcp"
+      - "8444:8443/tcp"
+      - "6600-6699:6600-6699"
+    depends_on:
+      - mcdb
+
+  #**** Database PostGresQL Mirth Connect ****
+  mcdb:
+    image: postgres:16
+    container_name: mcdb
+    hostname: mcdb
+    restart: always
+    environment:
+      - POSTGRES_USER=mirthdb
+      - POSTGRES_PASSWORD=mirthdb
+      - POSTGRES_DB=mirthdb
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    #internal exposed port is always 5432 don't change anyway
+    expose:
+      - 5432
+    #port 5435 for external tool like dbeavers access
+    ports:
+      - "5435:5432/tcp"
+    volumes:
+      - "./mirth/pgdata_mirth:/var/lib/postgresql/data"
+
+  springboot:
+    image: springboot:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - /data/springboot-docker-compose-app
+    ports:
+      - "8082:8080"
