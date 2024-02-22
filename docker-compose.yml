@@ -78,6 +78,7 @@ services:
 
   springboot:
     image: springboot:latest
+    container_name: springboot
     build:
       context: ./
       dockerfile: Dockerfile
