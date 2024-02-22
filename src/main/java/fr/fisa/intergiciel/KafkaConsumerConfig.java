@@ -1,5 +1,6 @@
 package fr.fisa.intergiciel;
 
+import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,11 @@ public class KafkaConsumerConfig {
 
     @Value("${kafka.bootstrap-servers}")
     private String bootstrapServers;
+
+    @PostConstruct
+    public void printBootstrapServers() {
+        System.out.println("Configured Kafka bootstrap servers: " + bootstrapServers);
+    }
 
 
     @Bean
