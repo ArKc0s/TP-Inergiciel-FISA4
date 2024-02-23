@@ -76,12 +76,32 @@ services:
     volumes:
       - "./mirth/pgdata_mirth:/var/lib/postgresql/data"
 
-  springboot:
-    image: springboot:latest
+  api:
+    image: spring_api:latest
+    container_name: api
     build:
-      context: ./
+      context: java_apps/api
       dockerfile: Dockerfile
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
     volumes:
       - /data/springboot-docker-compose-app
     ports:
       - "8082:8080"
+    depends_on:
+      - broker
+
+  db_ingest:
+    image: db_ingest:latest
+    container_name: db_ingest
+    build:
+      context: java_apps/DBIngest
+      dockerfile: Dockerfile
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
+    volumes:
+      - /data/db-ingest-docker-compose-app
+    depends_on:
+      - broker
+
+

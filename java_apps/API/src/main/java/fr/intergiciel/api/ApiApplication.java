@@ -1,13 +1,12 @@
-package fr.fisa.intergiciel;
+package fr.intergiciel.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class IntergicielApplication {
-
+public class ApiApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(IntergicielApplication.class, args);
+		SpringApplication.run(ApiApplication.class, args);
 	}
 
 }
