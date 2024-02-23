@@ -116,6 +116,8 @@ services:
       - /data/appconsole-docker-compose-app
     depends_on:
       - broker
+    stdin_open: true
+    tty: true
 
   fetchtreat:
     image: fetchtreat:latest
