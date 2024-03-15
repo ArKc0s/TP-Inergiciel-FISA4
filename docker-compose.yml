@@ -76,6 +76,7 @@ services:
     ports:
       - "5435:5432/tcp"
     volumes:
+      - "./sql/create-db.sql:/docker-entrypoint-initdb.d/create-db.sql"
       - "./mirth/pgdata_mirth:/var/lib/postgresql/data"
 
   api:
