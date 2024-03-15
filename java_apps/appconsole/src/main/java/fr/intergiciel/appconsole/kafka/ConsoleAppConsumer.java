@@ -23,16 +23,16 @@ public class ConsoleAppConsumer {
         this.topic = topic;
     }
 
-    public void consumeMessages() {
+    public String consumeMessages() {
         kafkaConsumer.subscribe(Collections.singletonList(topic));
 
-        while (true) {
             ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(100));
             for (ConsumerRecord<String, String> record : records) {
                 System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
+                return record.value();
             }
-        }
 //        kafkaConsumer.commitSync();
+        return null;
     }
 
     public void close() {

@@ -111,16 +111,16 @@ public class FetchAppConsumer {
 
         System.out.println(connection.toString());
 
-        String query = "SELECT * FROM Patient";
+        String query = "SELECT * FROM patient";
         try (PreparedStatement statement = connection.prepareStatement(query);
              ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
-                String patientId = resultSet.getString("patientId");
-                String birthName = resultSet.getString("birthName");
-                String legalName = resultSet.getString("legalName");
-                String firstName = resultSet.getString("firstName");
+                String patientId = resultSet.getString("patient_id");
+                String birthName = resultSet.getString("birth_name");
+                String legalName = resultSet.getString("legal_name");
+                String firstName = resultSet.getString("first_name");
                 String prefix = resultSet.getString("prefix");
-                java.sql.Date birthDate = resultSet.getDate("birthDate");
+                java.sql.Date birthDate = resultSet.getDate("birth_date");
 
                 Patient patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
                 patients.add(patient);

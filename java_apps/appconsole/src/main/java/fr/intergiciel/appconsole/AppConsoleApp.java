@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.Scanner;
 
 
+import fr.intergiciel.fetchtreat.kafka.ConsoleAppConsumer;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -67,16 +70,22 @@ public class AppConsoleApp {
 
     public static void main(String[] args) {
         YourClass yourClass = new YourClass(new ConsoleProd("broker:29092", "topic2"));
+        ConsoleAppConsumer consoleAppConsumer = new ConsoleAppConsumer("broker:29092", "topic3");
         AppConsoleApp appConsoleApp = new AppConsoleApp(yourClass);
 
         Scanner scanner = new Scanner(System.in);
         String input;
+        String message;
 
         do {
             System.out.print("Entrez une commande: ");
             input = scanner.nextLine();
             if (!input.equals("exit")) {
                 appConsoleApp.executeCommand(input);
+                do {
+                    message = consoleAppConsumer.consumeMessages();
+                } while (message == null);
+                System.out.println(message);
             }
         } while (true);
 

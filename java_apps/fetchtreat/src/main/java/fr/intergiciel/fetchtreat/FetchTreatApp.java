@@ -17,11 +17,13 @@ public class FetchTreatApp {
     public static void main(String[] args) {
 
         FetchAppConsumer kafkaConsumer = new FetchAppConsumer("broker:29092", "topic2");
+        FetchAppProducer kafkaProducer = new FetchAppProducer("broker:29092", "topic3");
 
         while (true) {
-            kafkaConsumer.consumeMessages();
-//            récupère réponse de la requête
-//            kafkaproducer.sendMessage(reponse)
+            Object result = kafkaConsumer.consumeMessages();
+            if(result != null) {
+                kafkaProducer.sendMessage(String.valueOf(result));
+            }
         }
     }
 
