@@ -108,6 +108,7 @@ services:
 
   appconsole:
     image: appconsole:latest
+    restart: always
     container_name: appconsole
     build:
       context: java_apps/appconsole
