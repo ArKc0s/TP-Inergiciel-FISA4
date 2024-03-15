@@ -32,3 +32,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+/mirth/pgdata_mirth/
+/mirth/appdata/
+/mirth/logs/
+/mirth/custom-extensions/
