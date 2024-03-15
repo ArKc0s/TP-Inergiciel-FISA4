@@ -35,7 +35,8 @@ services:
   mc:
     image: mirth450:latest
     build:
-      dockerfile: ./mirth/docker/Dockerfile
+      context: ./mirth/docker
+      dockerfile: Dockerfile
     container_name: mirth450
     hostname: mirth450
     restart: always

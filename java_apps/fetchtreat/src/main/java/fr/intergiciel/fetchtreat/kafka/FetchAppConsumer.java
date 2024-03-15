@@ -47,7 +47,7 @@ public class FetchAppConsumer {
         }
     }
 
-    public Object consumeMessages() {
+    public ArrayList<String> consumeMessages() {
         kafkaConsumer.subscribe(Collections.singletonList(topic));
 
         ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(100));
@@ -74,7 +74,7 @@ public class FetchAppConsumer {
     }
 
 
-    public Object transform_commande(String commandLine) {
+    public ArrayList<String> transform_commande(String commandLine) {
 //    Exemple de commande avec paramètre :
 //        get_patient_by_pid + 12
         String[] commandParts = commandLine.split("\\s+", 2);
@@ -84,13 +84,13 @@ public class FetchAppConsumer {
         Method method = commandMap.get(command);
         if (method != null) {
 
-            Object result;
+            ArrayList<String> result;
 
             try {
                 if (parameter != null && method.getParameterTypes().length == 1) {
-                    result = method.invoke(this, parameter);
+                    result = (ArrayList<String>) method.invoke(this, parameter);
                 } else {
-                    result = method.invoke(this);
+                    result = (ArrayList<String>) method.invoke(this);
                 }
 
                 return result;
@@ -106,8 +106,8 @@ public class FetchAppConsumer {
         return null;
     }
 
-    public List<Patient> getAllPatients() {
-        List<Patient> patients = new ArrayList<>();
+    public ArrayList<String> getAllPatients() {
+        ArrayList<String> patients = new ArrayList<>();
 
         System.out.println(connection.toString());
 
@@ -123,7 +123,7 @@ public class FetchAppConsumer {
                 java.sql.Date birthDate = resultSet.getDate("birth_date");
 
                 Patient patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
-                patients.add(patient);
+                patients.add(patient.toString());
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -45,7 +45,7 @@ RUN rm -rf cli-lib manager-lib \
 RUN (cat mcserver.vmoptions /opt/connect/docs/mcservice-java9+.vmoptions ; echo "") > mcserver_base.vmoptions
 EXPOSE 8443
 
-COPY ./mirth/docker/entrypoint.sh /
+COPY ./entrypoint.sh /
 RUN chmod 755 /entrypoint.sh
 
 RUN chown -R mirth:mirth /opt/connect
