@@ -64,4 +64,16 @@ public class Patient {
     public void setBirthDate(java.sql.Date birthDate) {
         this.birthDate = birthDate;
     }
+
+    @Override
+    public String toString() {
+        return "Patient{" +
+                "patientId='" + patientId + '\'' +
+                ", birthName='" + birthName + '\'' +
+                ", legalName='" + legalName + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", prefix='" + prefix + '\'' +
+                ", birthDate=" + birthDate +
+                "} \n";
+    }
 }

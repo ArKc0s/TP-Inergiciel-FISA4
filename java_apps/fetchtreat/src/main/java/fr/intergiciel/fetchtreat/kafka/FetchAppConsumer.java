@@ -8,23 +8,17 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
 import java.lang.reflect.InvocationTargetException;
 
 public class FetchAppConsumer {
 
     private KafkaConsumer<String, String> kafkaConsumer;
     private String topic;
-    private Map<String, Method> commandMap;
     private Connection connection;
 
     public FetchAppConsumer(String bootstrapServers, String topic) {
@@ -36,9 +30,6 @@ public class FetchAppConsumer {
 
         this.kafkaConsumer = new KafkaConsumer<>(props);
         this.topic = topic;
-        this.commandMap = new HashMap<>();
-
-        getCommands();
 
         try {
             connection = DB.connect();
@@ -53,56 +44,18 @@ public class FetchAppConsumer {
         ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(100));
         for (ConsumerRecord<String, String> record : records) {
             System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
-            return transform_commande(record.value());
-        }
-        return null;
-    }
 
+            String[] commandParts = record.value().split("\\s+", 2);
+            String command = commandParts[0];
+            String parameter = commandParts.length > 1 ? commandParts[1] : null;
 
-    private void getCommands() {
-        try {
-              commandMap.put("get_all_patients", this.getClass().getMethod("getAllPatients"));
-//            commandMap.put("get_patient_by_pid", targetObject.getClass().getMethod("getPatientByPID", String.class));
-//            commandMap.put("get_patient_by_name", targetObject.getClass().getMethod("getPatientByName", String.class));
-//            commandMap.put("get_patient_stay_by_pid", targetObject.getClass().getMethod("getPatientStayByPID", String.class));
-//            commandMap.put("get_patient_movements_by_sid", targetObject.getClass().getMethod("getPatientMovementsBySID", String.class));
-//            commandMap.put("export", targetObject.getClass().getMethod("exportDataToJson", String.class));
-            // Ajoutez d'autres fonctions si nécessaire
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public ArrayList<String> transform_commande(String commandLine) {
-//    Exemple de commande avec paramètre :
-//        get_patient_by_pid + 12
-        String[] commandParts = commandLine.split("\\s+", 2);
-        String command = commandParts[0];
-        String parameter = commandParts.length > 1 ? commandParts[1] : null;
-
-        Method method = commandMap.get(command);
-        if (method != null) {
-
-            ArrayList<String> result;
-
-            try {
-                if (parameter != null && method.getParameterTypes().length == 1) {
-                    result = (ArrayList<String>) method.invoke(this, parameter);
-                } else {
-                    result = (ArrayList<String>) method.invoke(this);
-                }
-
-                return result;
-
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+            if(Objects.equals(command, "get_all_patients")) {
+                return getAllPatients();
+            } else {
+                System.out.println("Commande inconnue");
             }
 
-        } else {
-            System.out.println("Commande inconnue");
         }
-
         return null;
     }
 
@@ -128,7 +81,7 @@ public class FetchAppConsumer {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.out.println(patients);
+
         return patients;
     }
 

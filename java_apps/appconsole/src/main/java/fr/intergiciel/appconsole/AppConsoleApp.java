@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 
-import fr.intergiciel.fetchtreat.kafka.ConsoleAppConsumer;
+import fr.intergiciel.appconsole.kafka.ConsoleAppConsumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -46,7 +46,7 @@ public class AppConsoleApp {
         }
     }
 
-    public void executeCommand(String commandLine) {
+    public boolean executeCommand(String commandLine) {
         String[] commandParts = commandLine.split("\\s+", 2);
         String command = commandParts[0];
         String parameter = commandParts.length > 1 ? commandParts[1] : null;
@@ -59,12 +59,16 @@ public class AppConsoleApp {
                 } else {
                     method.invoke(targetObject);
                 }
+
+                return true;
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
         } else {
             System.out.println("Commande inconnue");
         }
+
+        return false;
     }
 
 
@@ -81,11 +85,15 @@ public class AppConsoleApp {
             System.out.print("Entrez une commande: ");
             input = scanner.nextLine();
             if (!input.equals("exit")) {
-                appConsoleApp.executeCommand(input);
-                do {
-                    message = consoleAppConsumer.consumeMessages();
-                } while (message == null);
-                System.out.println(message);
+                var state = appConsoleApp.executeCommand(input);
+                if(state) {
+                    System.out.println("En attente d'une réponse...");
+                    do {
+                        message = consoleAppConsumer.consumeMessages();
+                    } while (message == null);
+                    System.out.println(message);
+                }
+
             }
         } while (true);
 

@@ -1,4 +1,4 @@
-package fr.intergiciel.fetchtreat.kafka;
+package fr.intergiciel.appconsole.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
