@@ -15,6 +15,8 @@ import java.sql.SQLException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 public class DBIngestApp {
 
@@ -33,7 +35,7 @@ public class DBIngestApp {
             for (ConsumerRecord<String, String> record : records) {
                 System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                 // Informations de connexion à la base de données PostgreSQL
-                String url = "jdbc:postgresql://localhost:5435/mirthdb";
+                String url = "jdbc:postgresql://mcdb:5432/mirthdb";
                 String user = "mirthdb";
                 String password = "mirthdb";
 
@@ -54,11 +56,11 @@ public class DBIngestApp {
                         JSONObject addressData = addressesData.getJSONObject(i);
                         insertAddress(connection, patientData.getString("PatientID"), addressData);
                     }
-                    insertMovement(connection, patientData.getString("PatientID"), movementsData);
                     insertStay(connection, patientData.getString("PatientID"), stayData);
+                    insertMovement(connection, patientData.getString("PatientID"), stayData.getString("NumUniqueSejour"),movementsData);
 
                     System.out.println("Données insérées avec succès !");
-                } catch (SQLException | JSONException e) {
+                } catch (SQLException | JSONException | ParseException e) {
                     e.printStackTrace();
                 }
             }
@@ -74,10 +76,18 @@ public class DBIngestApp {
             statement.setString(3, patientData.getString("PatientLegalName"));
             statement.setString(4, patientData.getString("PatientFirstName"));
             statement.setString(5, patientData.getString("PatientPrefix"));
-            statement.setString(6, patientData.getString("PatientBirthDate"));
+
+            // Convertir la date de naissance au format "12-10-1942" en java.sql.Date
+            String birthDateStr = patientData.getString("PatientBirthDate");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+            java.util.Date birthDateUtil = sdf.parse(birthDateStr);
+            java.sql.Date birthDateSql = new java.sql.Date(birthDateUtil.getTime());
+
+            statement.setDate(6, birthDateSql);
             statement.executeUpdate();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-        System.out.printf("%s",query);
     }
 
     private static void insertAddress(Connection connection, String patientId, JSONObject addressData) throws SQLException, JSONException {
@@ -94,31 +104,39 @@ public class DBIngestApp {
             statement.setString(9, patientId);
             statement.executeUpdate();
         }
-        System.out.printf("%s",query);
     }
 
-    private static void insertMovement(Connection connection, String patientId, JSONObject movementsData) throws SQLException, JSONException {
-        String query = "INSERT INTO Movement (service, room, bed, patient_id) VALUES (?, ?, ?, ?)";
+    private static void insertMovement(Connection connection, String patientId, String numsej, JSONObject movementsData) throws SQLException, JSONException {
+        String query = "INSERT INTO Movement (service, room, bed, num_sej, patient_id) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, movementsData.getString("Service"));
             statement.setString(2, movementsData.getString("Room"));
             statement.setString(3, movementsData.getString("Bed"));
-            statement.setString(4, patientId);
+            statement.setString(4, numsej);
+            statement.setString(5, patientId);
             statement.executeUpdate();
         }
-        System.out.printf("%s",query);
     }
 
-    private static void insertStay(Connection connection, String patientId, JSONObject stayData) throws SQLException, JSONException {
+    private static void insertStay(Connection connection, String patientId, JSONObject stayData) throws SQLException, JSONException, ParseException {
         String query = "INSERT INTO Stay (num_sej, start_date, end_date, patient_id) VALUES (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, stayData.getString("NumUniqueSejour"));
-            statement.setString(2, stayData.getString("AdmitDate"));
-            statement.setString(3, stayData.getString("DischargeDate"));
+            statement.setDate(2, parseDate(stayData.getString("AdmitDate")));
+            statement.setDate(3, parseDate(stayData.getString("DischargeDate")));
             statement.setString(4, patientId);
             statement.executeUpdate();
         }
-        System.out.printf("%s",query);
+    }
+
+    private static java.sql.Date parseDate(String dateString) throws ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        java.util.Date parsed = format.parse(dateString);
+        return new java.sql.Date(parsed.getTime());
     }
 }
+
+
+
+
 
