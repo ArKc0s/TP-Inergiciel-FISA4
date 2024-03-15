@@ -1,15 +1,26 @@
 package fr.intergiciel.appconsole;
 
+import fr.intergiciel.appconsole.kafka.*;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
+import java.util.Properties;
+
+// Pour tester la console, rentrer la commande suivante :
+
 public class AppConsoleApp {
 
     private Map<String, Method> commandMap;
     private Object targetObject;
+    ConsoleProd kafkaProducer = new ConsoleProd("broker:29092", "topic2");
 
     public AppConsoleApp(Object targetObject) {
         this.targetObject = targetObject;
@@ -46,7 +57,7 @@ public class AppConsoleApp {
     }
 
     public static void main(String[] args) {
-        YourClass yourClass = new YourClass();
+        YourClass yourClass = new YourClass(new ConsoleProd("broker:29092", "topic2"));
         AppConsoleApp appConsoleApp = new AppConsoleApp(yourClass);
 
         Scanner scanner = new Scanner(System.in);
@@ -63,40 +74,52 @@ public class AppConsoleApp {
 }
 
 class YourClass {
+    private final ConsoleProd kafkaProducer;
+
+    public YourClass(ConsoleProd kafkaProducer){
+        this.kafkaProducer = kafkaProducer;
+    }
 
     // Ajoutez ici les implémentations des fonctions demandées
 
     public void getAllPatients() {
+        kafkaProducer.sendMessage("get_all_patients");
         System.out.println("Fonction get_all_patients exécutée");
         // Implémentez la logique pour récupérer tous les patients
     }
 
     public void getPatientByPID(String pid) {
+        kafkaProducer.sendMessage("getPatientByPID + " + pid);
         System.out.println("Fonction get_patient_by_pid exécutée avec PID: " + pid);
         // Implémentez la logique pour récupérer un patient par son PID
     }
 
     public void getPatientByName(String name) {
+        kafkaProducer.sendMessage("getPatientByName + " + name);
         System.out.println("Fonction get_patient_by_name exécutée avec nom: " + name);
         // Implémentez la logique pour récupérer un patient par son nom
     }
 
     public void getPatientStayByPID(String pid) {
+        kafkaProducer.sendMessage("getPatientStayByPID + " + pid);
         System.out.println("Fonction get_patient_stay_by_pid exécutée avec PID: " + pid);
         // Implémentez la logique pour récupérer les séjours d'un patient par son PID
     }
 
     public void getPatientMovementsBySID(String sid) {
+        kafkaProducer.sendMessage("getPatientMovementsBySID + " + sid);
         System.out.println("Fonction get_patient_movements_by_sid exécutée avec SID: " + sid);
         // Implémentez la logique pour récupérer les mouvements d'un patient par son SID
     }
 
-    public void exportDataToJson() {
-        System.out.println("Fonction export exécutée");
+    public void exportDataToJson(String pid) {
+        kafkaProducer.sendMessage("exportDataToJson + " + pid);
+        System.out.println("Fonction export exécutée avec le PID: "+ pid);
         // Implémentez la logique pour exporter les données en JSON
     }
 
     public void printHelp() {
+        kafkaProducer.sendMessage("print Help");
         System.out.println("Liste des commandes de la console:");
         System.out.println("- get_all_patients (retourne tous les patients)");
         System.out.println("- get_patient_by_pid (retourne l’identité complète d’un patient par son identifiant PID-3)");
