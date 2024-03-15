@@ -6,7 +6,7 @@ COPY pom.xml .
 COPY src ./src
 
 # Compilation du projet et skip des tests
-RUN mvn clean package -DskipTests
+RUN mvn clean compile assembly:single -DskipTests
 
 # Étape finale pour l'exécution
 FROM openjdk:17
