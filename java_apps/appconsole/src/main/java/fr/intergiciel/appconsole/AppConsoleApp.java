@@ -14,7 +14,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 
-// Pour tester la console, rentrer la commande suivante :
+// Pour tester la console, rentrer la commande suivante : docker attach appconsole
+// Il faut ensuite ecrire une commande puis cliquer sur entrer
 
 public class AppConsoleApp {
 
@@ -27,7 +28,6 @@ public class AppConsoleApp {
         this.commandMap = new HashMap<>();
         initializeCommands();
     }
-
     private void initializeCommands() {
         try {
             commandMap.put("get_all_patients", targetObject.getClass().getMethod("getAllPatients"));
@@ -35,7 +35,7 @@ public class AppConsoleApp {
             commandMap.put("get_patient_by_name", targetObject.getClass().getMethod("getPatientByName", String.class));
             commandMap.put("get_patient_stay_by_pid", targetObject.getClass().getMethod("getPatientStayByPID", String.class));
             commandMap.put("get_patient_movements_by_sid", targetObject.getClass().getMethod("getPatientMovementsBySID", String.class));
-            commandMap.put("export", targetObject.getClass().getMethod("exportDataToJson"));
+            commandMap.put("export", targetObject.getClass().getMethod("exportDataToJson", String.class));
             commandMap.put("help", targetObject.getClass().getMethod("printHelp"));
             // Ajoutez d'autres fonctions si nécessaire
         } catch (NoSuchMethodException e) {
@@ -43,11 +43,19 @@ public class AppConsoleApp {
         }
     }
 
-    public void executeCommand(String command) {
+    public void executeCommand(String commandLine) {
+        String[] commandParts = commandLine.split("\\s+", 2);
+        String command = commandParts[0];
+        String parameter = commandParts.length > 1 ? commandParts[1] : null;
+
         Method method = commandMap.get(command);
         if (method != null) {
             try {
-                method.invoke(targetObject);
+                if (parameter != null && method.getParameterTypes().length == 1) {
+                    method.invoke(targetObject, parameter);
+                } else {
+                    method.invoke(targetObject);
+                }
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
@@ -55,6 +63,7 @@ public class AppConsoleApp {
             System.out.println("Commande inconnue");
         }
     }
+
 
     public static void main(String[] args) {
         YourClass yourClass = new YourClass(new ConsoleProd("broker:29092", "topic2"));
@@ -64,12 +73,13 @@ public class AppConsoleApp {
         String input;
 
         do {
-            System.out.print("Entrez une commande (ou 'exit' pour quitter): ");
+            System.out.print("Entrez une commande: ");
             input = scanner.nextLine();
             if (!input.equals("exit")) {
                 appConsoleApp.executeCommand(input);
             }
-        } while (!input.equals("exit"));
+        } while (true);
+
     }
 }
 
@@ -119,7 +129,6 @@ class YourClass {
     }
 
     public void printHelp() {
-        kafkaProducer.sendMessage("print Help");
         System.out.println("Liste des commandes de la console:");
         System.out.println("- get_all_patients (retourne tous les patients)");
         System.out.println("- get_patient_by_pid (retourne l’identité complète d’un patient par son identifiant PID-3)");
