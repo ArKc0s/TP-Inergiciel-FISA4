@@ -32,9 +32,10 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
-      KAFKA_CREATE_TOPICS: "Topic1:1:,Topic2:1:1, Topic3:1:1"
   mc:
     image: mirth450:latest
+    build:
+      dockerfile: ./mirth/docker/Dockerfile
     container_name: mirth450
     hostname: mirth450
     restart: always
@@ -96,7 +97,7 @@ services:
     image: dbingest:latest
     container_name: dbingest
     build:
-      context: java_apps/DBIngest
+      context: java_apps/dbingest
       dockerfile: Dockerfile
     environment:
       SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
@@ -109,7 +110,7 @@ services:
     image: appconsole:latest
     container_name: appconsole
     build:
-      context: java_apps/AppConsole
+      context: java_apps/appconsole
       dockerfile: Dockerfile
     environment:
       SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
@@ -122,7 +123,7 @@ services:
     image: fetchtreat:latest
     container_name: fetchtreat
     build:
-      context: java_apps/FetchTreat
+      context: java_apps/fetchtreat
       dockerfile: Dockerfile
     environment:
       SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
