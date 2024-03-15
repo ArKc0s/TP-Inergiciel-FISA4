@@ -99,31 +99,31 @@ class YourClass {
     }
 
     public void getPatientByPID(String pid) {
-        kafkaProducer.sendMessage("getPatientByPID + " + pid);
+        kafkaProducer.sendMessage("getPatientByPID " + pid);
         System.out.println("Fonction get_patient_by_pid exécutée avec PID: " + pid);
         // Implémentez la logique pour récupérer un patient par son PID
     }
 
     public void getPatientByName(String name) {
-        kafkaProducer.sendMessage("getPatientByName + " + name);
+        kafkaProducer.sendMessage("getPatientByName " + name);
         System.out.println("Fonction get_patient_by_name exécutée avec nom: " + name);
         // Implémentez la logique pour récupérer un patient par son nom
     }
 
     public void getPatientStayByPID(String pid) {
-        kafkaProducer.sendMessage("getPatientStayByPID + " + pid);
+        kafkaProducer.sendMessage("getPatientStayByPID " + pid);
         System.out.println("Fonction get_patient_stay_by_pid exécutée avec PID: " + pid);
         // Implémentez la logique pour récupérer les séjours d'un patient par son PID
     }
 
     public void getPatientMovementsBySID(String sid) {
-        kafkaProducer.sendMessage("getPatientMovementsBySID + " + sid);
+        kafkaProducer.sendMessage("getPatientMovementsBySID " + sid);
         System.out.println("Fonction get_patient_movements_by_sid exécutée avec SID: " + sid);
         // Implémentez la logique pour récupérer les mouvements d'un patient par son SID
     }
 
     public void exportDataToJson(String pid) {
-        kafkaProducer.sendMessage("exportDataToJson + " + pid);
+        kafkaProducer.sendMessage("exportDataToJson " + pid);
         System.out.println("Fonction export exécutée avec le PID: "+ pid);
         // Implémentez la logique pour exporter les données en JSON
     }

@@ -1,16 +1,31 @@
 package fr.intergiciel.fetchtreat.kafka;
 
+import fr.intergiciel.fetchtreat.DB;
+import fr.intergiciel.fetchtreat.tables.Patient;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.lang.reflect.InvocationTargetException;
 
 public class FetchAppConsumer {
-    private final KafkaConsumer<String, String> kafkaConsumer;
-    private final String topic;
+
+    private KafkaConsumer<String, String> kafkaConsumer;
+    private String topic;
+    private Map<String, Method> commandMap;
+    private Connection connection;
 
     public FetchAppConsumer(String bootstrapServers, String topic) {
         Properties props = new Properties();
@@ -21,19 +36,129 @@ public class FetchAppConsumer {
 
         this.kafkaConsumer = new KafkaConsumer<>(props);
         this.topic = topic;
+        this.commandMap = new HashMap<>();
+
+        getCommands();
+
+        try {
+            connection = DB.connect();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void consumeMessages() {
+    public Object consumeMessages() {
         kafkaConsumer.subscribe(Collections.singletonList(topic));
 
-        while (true) {
-            ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(100));
-            for (ConsumerRecord<String, String> record : records) {
-                System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
-            }
+        ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(100));
+        for (ConsumerRecord<String, String> record : records) {
+            System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
+            return transform_commande(record.value());
         }
-//        kafkaConsumer.commitSync();
+        return null;
     }
+
+
+    private void getCommands() {
+        try {
+              commandMap.put("get_all_patients", this.getClass().getMethod("getAllPatients"));
+//            commandMap.put("get_patient_by_pid", targetObject.getClass().getMethod("getPatientByPID", String.class));
+//            commandMap.put("get_patient_by_name", targetObject.getClass().getMethod("getPatientByName", String.class));
+//            commandMap.put("get_patient_stay_by_pid", targetObject.getClass().getMethod("getPatientStayByPID", String.class));
+//            commandMap.put("get_patient_movements_by_sid", targetObject.getClass().getMethod("getPatientMovementsBySID", String.class));
+//            commandMap.put("export", targetObject.getClass().getMethod("exportDataToJson", String.class));
+            // Ajoutez d'autres fonctions si nécessaire
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public Object transform_commande(String commandLine) {
+//    Exemple de commande avec paramètre :
+//        get_patient_by_pid + 12
+        String[] commandParts = commandLine.split("\\s+", 2);
+        String command = commandParts[0];
+        String parameter = commandParts.length > 1 ? commandParts[1] : null;
+
+        Method method = commandMap.get(command);
+        if (method != null) {
+
+            Object result;
+
+            try {
+                if (parameter != null && method.getParameterTypes().length == 1) {
+                    result = method.invoke(this, parameter);
+                } else {
+                    result = method.invoke(this);
+                }
+
+                return result;
+
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            System.out.println("Commande inconnue");
+        }
+
+        return null;
+    }
+
+    public List<Patient> getAllPatients() {
+        List<Patient> patients = new ArrayList<>();
+
+        System.out.println(connection.toString());
+
+        String query = "SELECT * FROM Patient";
+        try (PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+            while (resultSet.next()) {
+                String patientId = resultSet.getString("patientId");
+                String birthName = resultSet.getString("birthName");
+                String legalName = resultSet.getString("legalName");
+                String firstName = resultSet.getString("firstName");
+                String prefix = resultSet.getString("prefix");
+                java.sql.Date birthDate = resultSet.getDate("birthDate");
+
+                Patient patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
+                patients.add(patient);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        System.out.println(patients);
+        return patients;
+    }
+
+//    public Patient getPatientByPID(String pid) {
+//        Patient patient = None;
+//        String query = "SELECT * FROM patient WHERE patient.patient_id = ? " ;
+//        try (PreparedStatement statement = connection.prepareStatement(query);
+//             statement.setString(1, pid);
+//             ResultSet resultSet = statement.executeQuery()){
+//            if (resultSet.size() == 1) {
+//                String patientId = resultSet.getString("patientId");
+//                String birthName = resultSet.getString("birthName");
+//                String legalName = resultSet.getString("legalName");
+//                String firstName = resultSet.getString("firstName");
+//                String prefix = resultSet.getString("prefix");
+//                java.sql.Date birthDate = resultSet.getDate("birthDate");
+//                Patient patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
+//            } else if (resultSet.size() == 0) {
+//                return "Aucun patient trouvé.";
+//            }
+//
+//        }catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return patient;
+//    }
+
+//    public static getPatientByName(String name) {
+//        pass
+//    }
 
     public void close() {
         kafkaConsumer.close();

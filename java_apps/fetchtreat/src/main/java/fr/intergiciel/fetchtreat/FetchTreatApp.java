@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -19,6 +20,8 @@ public class FetchTreatApp {
 
         while (true) {
             kafkaConsumer.consumeMessages();
+//            récupère réponse de la requête
+//            kafkaproducer.sendMessage(reponse)
         }
     }
 
