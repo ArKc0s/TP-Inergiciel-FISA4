@@ -1,6 +1,7 @@
 package fr.intergiciel.fetchtreat;
 
 import fr.intergiciel.fetchtreat.kafka.*;
+import fr.intergiciel.fetchtreat.tables.*;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -21,10 +22,18 @@ public class FetchTreatApp {
 
         while (true) {
             Object result = kafkaConsumer.consumeMessages();
-            if(result != null) {
-                kafkaProducer.sendMessage(result.toString());
+            if (result != null) {
+                if (result instanceof String) {
+                    String message = (String) result;
+                    System.out.println("Message : " + message);
+                }else if (result instanceof Patient) {
+                    kafkaProducer.sendMessage(result.toString());
+                }else {
+                    kafkaProducer.sendMessage(result.toString());
+                }
             }
+            result = null;
         }
-    }
 
+    }
 }

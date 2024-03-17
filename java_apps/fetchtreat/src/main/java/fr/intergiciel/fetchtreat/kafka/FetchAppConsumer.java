@@ -1,7 +1,7 @@
 package fr.intergiciel.fetchtreat.kafka;
 
 import fr.intergiciel.fetchtreat.DB;
-import fr.intergiciel.fetchtreat.tables.Patient;
+import fr.intergiciel.fetchtreat.tables.*;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -100,19 +100,17 @@ public class FetchAppConsumer {
         return patients;
     }
 
-    public Patient getPatientByPID(String pid) {
-        System.out.println("getPatientByPID");
+    public Object getPatientByPID(String pid) {
         Patient patient = null;
         String query = "SELECT * FROM patient WHERE patient.patient_id = ? ";
         PreparedStatement statement = null;
         ResultSet resultSet = null;
-        System.out.println("init");
         try {
             statement = connection.prepareStatement(query);
             statement.setString(1, pid);
             resultSet = statement.executeQuery();
-            System.out.println("resultset : " + resultSet.toString());
-            if (resultSet != null) {
+
+            if (resultSet.next()) { // Appeler la méthode next() avant de récupérer des données
                 String patientId = resultSet.getString("patient_id");
                 String birthName = resultSet.getString("birth_name");
                 String legalName = resultSet.getString("legal_name");
@@ -140,8 +138,15 @@ public class FetchAppConsumer {
                 }
             }
         }
-        return patient;
+        if (patient == null) {
+            System.out.println("patient is null");
+//          TODO : Erreur à traiter à un moment
+            return ("Aucun résultat trouvé dans la base de données.");
+        }
+        System.out.println("patient : " + patient.toString());
+        return (patient);
     }
+
 
 //    public static getPatientByName(String name) {
 //        pass
