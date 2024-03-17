@@ -20,7 +20,7 @@ public class FetchTreatApp {
         FetchAppProducer kafkaProducer = new FetchAppProducer("broker:29092", "topic3");
 
         while (true) {
-            ArrayList<String> result = kafkaConsumer.consumeMessages();
+            Object result = kafkaConsumer.consumeMessages();
             if(result != null) {
                 kafkaProducer.sendMessage(result.toString());
             }

@@ -47,4 +47,14 @@ public class Stay {
     public void setPatient(Patient patient) {
         this.patient = patient;
     }
+
+    @Override
+    public String toString() {
+        return "Stay{" +
+                "stayId='" + stayId + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", patient=" + patient +
+                '}';
+    }
 }

@@ -38,7 +38,7 @@ public class FetchAppConsumer {
         }
     }
 
-    public ArrayList<String> consumeMessages() {
+    public Object consumeMessages() {
         kafkaConsumer.subscribe(Collections.singletonList(topic));
 
         ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(100));
@@ -49,6 +49,7 @@ public class FetchAppConsumer {
             String command = commandParts[0];
             String parameter = commandParts.length > 1 ? commandParts[1] : null;
 
+            //TODO: Mettre des else-if pour chaque commande, pour les commandes a param, mettre la variable parameter en paramètre de la fonction
             if(Objects.equals(command, "get_all_patients")) {
                 return getAllPatients();
             } else {
@@ -58,6 +59,9 @@ public class FetchAppConsumer {
         }
         return null;
     }
+
+
+    //TODO: Faire les fonctions pour chaque requete, chaque fonction doit retourner un Object toStringable (une ArrayList, un String, un Patient...)
 
     public ArrayList<String> getAllPatients() {
         ArrayList<String> patients = new ArrayList<>();

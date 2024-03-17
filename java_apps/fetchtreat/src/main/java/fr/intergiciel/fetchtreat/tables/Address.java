@@ -95,4 +95,20 @@ public class Address {
     public String getAddressType() {
         return addressType;
     }
+
+    @Override
+    public String toString() {
+        return "Address{" +
+                "addressId=" + addressId +
+                ", addressIndex=" + addressIndex +
+                ", street='" + street + '\'' +
+                ", otherStreet='" + otherStreet + '\'' +
+                ", city='" + city + '\'' +
+                ", state='" + state + '\'' +
+                ", postalCode='" + postalCode + '\'' +
+                ", country='" + country + '\'' +
+                ", addressType='" + addressType + '\'' +
+                ", patient=" + patient +
+                '}';
+    }
 }

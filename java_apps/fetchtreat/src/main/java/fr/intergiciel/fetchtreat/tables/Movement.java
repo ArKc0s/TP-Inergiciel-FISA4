@@ -65,4 +65,16 @@ public class Movement {
     public void setPatient(Patient patient) {
         this.patient = patient;
     }
+
+    @Override
+    public String toString() {
+        return "Movement{" +
+                "movementId=" + movementId +
+                ", service='" + service + '\'' +
+                ", room='" + room + '\'' +
+                ", bed='" + bed + '\'' +
+                ", stay=" + stay +
+                ", patient=" + patient +
+                '}';
+    }
 }
