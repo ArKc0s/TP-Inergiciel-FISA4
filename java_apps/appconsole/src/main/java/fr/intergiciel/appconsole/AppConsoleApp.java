@@ -84,16 +84,20 @@ public class AppConsoleApp {
         do {
             System.out.print("Entrez une commande: ");
             input = scanner.nextLine();
-            if (!input.equals("exit")) {
+            if (!input.equals("exit") && !input.equals("help")) {
                 var state = appConsoleApp.executeCommand(input);
-                if(state) {
+                if(state && !input.equals("help")){
                     System.out.println("En attente d'une réponse...");
                     do {
                         message = consoleAppConsumer.consumeMessages();
                     } while (message == null);
                     System.out.println(message);
                 }
-
+            }else if (input.equals("help")) {
+                var state = appConsoleApp.executeCommand(input);
+                if(!state){
+                    System.out.println("Une erreur est survenue lors de l'exécution de la commande");
+                }
             }
         } while (true);
 

@@ -100,48 +100,48 @@ public class FetchAppConsumer {
         return patients;
     }
 
-//    public Patient getPatientByPID(String pid) {
-//        System.out.println("getPatientByPID");
-//        Patient patient = null;
-//        String query = "SELECT * FROM patient WHERE patient.patient_id = ? ";
-//        PreparedStatement statement = null;
-//        ResultSet resultSet = null;
-//        System.out.println("init");
-//        try {
-//            statement = connection.prepareStatement(query);
-//            statement.setString(1, pid);
-//            resultSet = statement.executeQuery();
-//            System.out.println("resultset : " + resultSet.toString());
-//            if (resultSet != null) {
-//                String patientId = resultSet.getString("patient_id");
-//                String birthName = resultSet.getString("birth_name");
-//                String legalName = resultSet.getString("legal_name");
-//                String firstName = resultSet.getString("first_name");
-//                String prefix = resultSet.getString("prefix");
-//                java.sql.Date birthDate = resultSet.getDate("birth_date");
-//
-//                patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (resultSet != null) {
-//                try {
-//                    resultSet.close();
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            if (statement != null) {
-//                try {
-//                    statement.close();
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//        return patient;
-//    }
+    public Patient getPatientByPID(String pid) {
+        System.out.println("getPatientByPID");
+        Patient patient = null;
+        String query = "SELECT * FROM patient WHERE patient.patient_id = ? ";
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        System.out.println("init");
+        try {
+            statement = connection.prepareStatement(query);
+            statement.setString(1, pid);
+            resultSet = statement.executeQuery();
+            System.out.println("resultset : " + resultSet.toString());
+            if (resultSet != null) {
+                String patientId = resultSet.getString("patient_id");
+                String birthName = resultSet.getString("birth_name");
+                String legalName = resultSet.getString("legal_name");
+                String firstName = resultSet.getString("first_name");
+                String prefix = resultSet.getString("prefix");
+                java.sql.Date birthDate = resultSet.getDate("birth_date");
+
+                patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return patient;
+    }
 
 //    public static getPatientByName(String name) {
 //        pass
