@@ -52,7 +52,18 @@ public class FetchAppConsumer {
             //TODO: Mettre des else-if pour chaque commande, pour les commandes a param, mettre la variable parameter en paramètre de la fonction
             if(Objects.equals(command, "get_all_patients")) {
                 return getAllPatients();
-            } else {
+            }
+            else if(Objects.equals(command, "get_patient_by_pid") && parameter != null) {
+                return getPatientByPID(parameter);
+            }else if(Objects.equals(command, "get_patient_by_name") && parameter != null) {
+                //return getPatientByName(parameter);
+            }else if(Objects.equals(command, "get_patient_stay_by_pid") && parameter != null) {
+                //return getPatientStayByPID(parameter);
+            }else if(Objects.equals(command, "get_patient_movements_by_sid") && parameter != null) {
+                //return getPatientMovementsBySID(parameter);
+            }else if(Objects.equals(command, "export") && parameter != null) {
+                //return exportDataToJson(parameter);
+            }else {
                 System.out.println("Commande inconnue");
             }
 
@@ -90,25 +101,44 @@ public class FetchAppConsumer {
     }
 
 //    public Patient getPatientByPID(String pid) {
-//        Patient patient = None;
-//        String query = "SELECT * FROM patient WHERE patient.patient_id = ? " ;
-//        try (PreparedStatement statement = connection.prepareStatement(query);
-//             statement.setString(1, pid);
-//             ResultSet resultSet = statement.executeQuery()){
-//            if (resultSet.size() == 1) {
-//                String patientId = resultSet.getString("patientId");
-//                String birthName = resultSet.getString("birthName");
-//                String legalName = resultSet.getString("legalName");
-//                String firstName = resultSet.getString("firstName");
+//        System.out.println("getPatientByPID");
+//        Patient patient = null;
+//        String query = "SELECT * FROM patient WHERE patient.patient_id = ? ";
+//        PreparedStatement statement = null;
+//        ResultSet resultSet = null;
+//        System.out.println("init");
+//        try {
+//            statement = connection.prepareStatement(query);
+//            statement.setString(1, pid);
+//            resultSet = statement.executeQuery();
+//            System.out.println("resultset : " + resultSet.toString());
+//            if (resultSet != null) {
+//                String patientId = resultSet.getString("patient_id");
+//                String birthName = resultSet.getString("birth_name");
+//                String legalName = resultSet.getString("legal_name");
+//                String firstName = resultSet.getString("first_name");
 //                String prefix = resultSet.getString("prefix");
-//                java.sql.Date birthDate = resultSet.getDate("birthDate");
-//                Patient patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
-//            } else if (resultSet.size() == 0) {
-//                return "Aucun patient trouvé.";
-//            }
+//                java.sql.Date birthDate = resultSet.getDate("birth_date");
 //
-//        }catch (SQLException e) {
+//                patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
+//            }
+//        } catch (SQLException e) {
 //            e.printStackTrace();
+//        } finally {
+//            if (resultSet != null) {
+//                try {
+//                    resultSet.close();
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            if (statement != null) {
+//                try {
+//                    statement.close();
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                }
+//            }
 //        }
 //        return patient;
 //    }
