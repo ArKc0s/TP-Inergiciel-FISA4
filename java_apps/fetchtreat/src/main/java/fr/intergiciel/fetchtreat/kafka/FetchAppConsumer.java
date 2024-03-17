@@ -56,9 +56,9 @@ public class FetchAppConsumer {
             else if(Objects.equals(command, "get_patient_by_pid") && parameter != null) {
                 return getPatientByPID(parameter);
             }else if(Objects.equals(command, "get_patient_by_name") && parameter != null) {
-                //return getPatientByName(parameter);
+                return getPatientByName(parameter);
             }else if(Objects.equals(command, "get_patient_stay_by_pid") && parameter != null) {
-                //return getPatientStayByPID(parameter);
+                return getPatientStayByPID(parameter);
             }else if(Objects.equals(command, "get_patient_movements_by_sid") && parameter != null) {
                 //return getPatientMovementsBySID(parameter);
             }else if(Objects.equals(command, "export") && parameter != null) {
@@ -96,7 +96,9 @@ public class FetchAppConsumer {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        if (patients.isEmpty()) {
+            System.out.println("patients is empty");
+            return ("Aucun résultat trouvé dans la base de données.");
         return patients;
     }
 
@@ -148,9 +150,96 @@ public class FetchAppConsumer {
     }
 
 
-//    public static getPatientByName(String name) {
-//        pass
-//    }
+    public ArrayList<String> getPatientByName(String name) {
+        ArrayList<String> patients = new ArrayList<>();
+
+        System.out.println(connection.toString());
+
+        String query = "SELECT * FROM patient WHERE patient.birth_name LIKE ? OR patient.legal_name LIKE ? OR patient.first_name LIKE ?";
+        try {
+            statement = connection.prepareStatement(query);
+            statement.setString(1, name);
+            statement.setString(2, name);
+            statement.setString(3, name);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String patientId = resultSet.getString("patient_id");
+                String birthName = resultSet.getString("birth_name");
+                String legalName = resultSet.getString("legal_name");
+                String firstName = resultSet.getString("first_name");
+                String prefix = resultSet.getString("prefix");
+                java.sql.Date birthDate = resultSet.getDate("birth_date");
+
+                Patient patient = new Patient(patientId, birthName, legalName, firstName, prefix, birthDate);
+                patients.add(patient.toString());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (patients.isEmpty()) {
+            System.out.println("patients is empty");
+            return ("Aucun résultat trouvé dans la base de données.");
+
+        return patients;
+    }
+
+    public ArrayList<String> getStaysByPatientID(String patientID) {
+        ArrayList<String> stays = new ArrayList<>();
+        String query = "SELECT * FROM Stay WHERE patient_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, patientID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+
+                    java.sql.Date start_date= resultSet.getDate("start_date");
+
+                    java.sql.Date end_date= resultSet.getDate("end_date");
+// Assuming Stay class exists with appropriate constructor
+                    Stay stay = new Stay(
+                            resultSet.getString("num_sej"),
+                            start_date,
+                            end_date,
+                            resultSet.getString("patient_id")
+                    );
+                    stays.add(Stay.toString());
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (stays.isEmpty()) {
+            System.out.println("stays is empty");
+            return ("Aucun résultat trouvé dans la base de données.");
+        }
+        return stays;
+    }
+
+    public ArrayList<String> getMovementsByPatientID(String NumSej) {
+        ArrayList<String> movements = new ArrayList<>();
+        String query = "SELECT * FROM Movement WHERE num_sej = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, NumSej);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+// Assuming Movement class exists with appropriate constructor
+                    Movement movement = new Movement(
+                            resultSet.getInt("movement_id"),
+                            resultSet.getString("service"),
+                            resultSet.getString("room"),
+                            resultSet.getString("bed"),
+                            resultSet.getString("num_sej"),
+                            resultSet.getString("patient_id")
+                    );
+                    movements.add(Movement.toString());
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return movements;
+    }
 
     public void close() {
         kafkaConsumer.close();

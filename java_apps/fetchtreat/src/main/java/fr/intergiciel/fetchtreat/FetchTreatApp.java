@@ -28,7 +28,9 @@ public class FetchTreatApp {
                     System.out.println("Message : " + message);
                 }else if (result instanceof Patient) {
                     kafkaProducer.sendMessage(result.toString());
-                }else {
+                } else if (result instanceof Stay) {
+                    kafkaProducer.sendMessage(result.toString());
+                } else {
                     kafkaProducer.sendMessage(result.toString());
                 }
             }
