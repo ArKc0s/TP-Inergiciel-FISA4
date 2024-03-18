@@ -1,49 +1,60 @@
 # TP-Inergiciel-FISA4
 
-Question N°1:
+## Introduction
+This class project aim to implement the following architecture : 
+![img.png](img.png)
 
-Oui, on aurait pu réaliser cette architecture sans l'utilisation de Kafka ou d'un autre bus intergiciel. Voici la démarche :
+The final point is to be able to enter command lines in a console that will give us the informations we want.
 
-Au lieu d'utiliser Kafka, on peut concevoir une architecture basée sur une file d'attente locale ou un système de fichiers partagé pour le transport des messages entre les différents modules. Par exemple, le producteur pourrait déposer les fichiers JSON dans un dossier partagé, et le consommateur pourrait surveiller ce dossier et traiter les fichiers dès qu'ils y sont déposés.
+## Technologies
+- Docker
+- Docker-compose
+- Java 17
+- Maven
+- Kafka
+- Zookeeper
+- PostgreSQL
 
-Cependant, cette approche pourrait présenter des défis en termes d'évolutivité, de tolérance aux pannes et de gestion des flux de données. Avec Kafka on peut répartir des charges, avoir de la persistance des messages, et une architecture distribuée qui facilite la mise en œuvre de systèmes solides et évolutifs.
+## Initial Setup
+- Clone the project
+- Import the channel mirth named "HL7 Conversion.xml" in mirth connect (at the root of the project)
+- Run the following command to start the project
+```git bash
+sh build_and_deploy.sh
+```
+Once the project is running, you can use the following commands to run the console and send commands : 
+```git bash
+docker attach appconsole
+```
 
-Question N°2:
+## Docker Containers
+We have 8 container running :
+- 'brocker' -> The Broker container
+- 'zookeeper' -> The Zookeper container
+- 'mirth450'-> The Mirth Connect container
+- 'mcdb' -> The Database container with the PostgreSQL database
+- 'api' -> A container running the API that receive the json from mirth (Producer Pr1 in the schema above)
+- 'dbingest' -> A container that uses the json to put data in the database (consumer Cs1 in the schema above)
+- 'appconsole' -> A container running the console that will allow us to send commands and display answers (Producer Pr2 and Consumer Cs3 in the schema above)
+- 'fetchtrat' -> A container that will fetch data from the database and send it to the console (Consumer Cs2 Producer Pr3 in the schema above)
 
-Les deux architectures ont leurs avantages et leurs inconvénients. La solution proposée dans le TP avec Kafka offre une évolutivité élevée, une tolérance aux pannes, et une gestion efficace des flux de données. Mais, elle peut être complexe à mettre en place et nécessite une connaissance approfondie de Kafka.
+## App
+The app is a simple console that will allow us to send commands transform the command in SQL to ask the database and then display the result.
+To do that we first have loads of files with the extension HL7 (extension for health level 7). Mirth then convert those files into JSON through the channel "HL7 Conversion.xml". This Json is sent to the API that will transfert them to dbinges throught a kafka bus. dbingest tranform the Json into SQL and send it to the database.
+On the other side, there is two applications that are producers and consumers in the same time allowing transfer of information between the console and the database. Therefore, the command written by the user will be transformed into a SQL command to have to correct result of the database and then display it.
 
-Une architecture sans Kafka pourrait être plus simple à mettre en œuvre, mais elle pourrait être moins évolutive et moins robuste. Elle pourrait également être plus difficile à maintenir et à faire évoluer à mesure que les besoins de l'entreprise changent.
+### The different commands
+- get_all_patients (return all the patients and their information)
+- get_patient_by_pid (return the complete identity of the patient thanks to their id PID-3)
+- get_patient_by_name (return the complete identity of the patient thanks to one of their name)
+- get_patient_stay_by_pid (return the stays of a patient thanks to their id PID-3)
+- get_patient_movements_by_sid (return all the movements of a patient through their stay id)
+- export (Export the data of a patient in a json thanks to their id PID-3)
+- help (Display the list of commands and their description given above)
+- exit (Close the app)
 
-Si on cherhce une solution hautement évolutive et tolérante aux pannes, la solution avec Kafka pourrait être la meilleure option.
+## Team
+[Léo Wadin](https://github.com/ArKc0s)<br>
+[Elena Beylat](https://github.com/PetitCheveu)<br>
+[Aurélien Houdart](https://github.com/Zaykiri)<br>
 
-Question N°3:
-
-Pour sécuriser les échanges dans un bus Kafka, on retrouve plusieurs options de sécurité : 
-
-SSL/TLS : Utilisation de SSL/TLS pour chiffrer les communications entre les producteurs, les consommateurs et les brokers Kafka.
-
-Authentification : Configuration de l'authentification pour s'assurer que seuls les utilisateurs autorisés peuvent accéder au bus Kafka.
-
-Autorisation : Définition de politiques d'autorisation pour contrôler les actions spécifiques que chaque utilisateur peut effectuer sur les topics Kafka.
-
-SASL (Simple Authentication and Security Layer) : Mise en place de SASL pour une authentification sécurisée dans un environnement distribué.
-
-Kerberos : Utilisation de l'authentification Kerberos pour renforcer la sécurité des échanges.
-
-Pour votre projet, vous pourriez opter pour une combinaison de SSL/TLS pour le chiffrement et l'authentification. 
-
-Configuration SSL/TLS pour Kafka :
-
-On génére des certificats SSL/TLS pour les brokers Kafka, les producteurs et les consommateurs. Pour cela, on peut utiliser des outils comme OpenSSL pour générer ces certificats.
-
-On configure les brokers Kafka pour utiliser les certificats SSL/TLS. Cela nécessitera des modifications dans les fichiers de configuration des brokers Kafka pour spécifier les emplacements des certificats.
-
-On configure les producteurs et les consommateurs pour utiliser les certificats SSL/TLS lors de la communication avec les brokers Kafka. Cela implique également la spécification des emplacements des certificats dans les configurations des producteurs et des consommateurs.
-
-Configuration de l'authentification pour Kafka :
-
-On configure les brokers Kafka pour utiliser un mécanisme d'authentification approprié, comme SASL/SSL.
-
-On définie les utilisateurs et les mots de passe pour l'authentification SASL.
-
-On configure les producteurs et les consommateurs pour utiliser le même mécanisme d'authentification que les brokers Kafka. Cela implique également la spécification des informations d'identification dans les configurations des producteurs et des consommateurs.

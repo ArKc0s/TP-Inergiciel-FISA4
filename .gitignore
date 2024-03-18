@@ -1,6 +1,7 @@
 HELP.md
 target/
-!.mvn/wrapper/maven-wrapper.jar
+!java_apps/producer_1/.mvn/wrapper/maven-wrapper.jar
+!java_apps/consumer_1/.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -31,4 +32,8 @@ build/
 
 ### VS Code ###
 .vscode/
-/mirth/
+
+/mirth/pgdata_mirth/
+/mirth/appdata/
+/mirth/logs/
+/mirth/custom-extensions/

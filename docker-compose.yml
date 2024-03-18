@@ -34,6 +34,9 @@ services:
       KAFKA_JMX_HOSTNAME: localhost
   mc:
     image: mirth450:latest
+    build:
+      context: ./mirth/docker
+      dockerfile: Dockerfile
     container_name: mirth450
     hostname: mirth450
     restart: always
@@ -74,14 +77,65 @@ services:
     ports:
       - "5435:5432/tcp"
     volumes:
+      - "./sql/create-db.sql:/docker-entrypoint-initdb.d/create-db.sql"
       - "./mirth/pgdata_mirth:/var/lib/postgresql/data"
 
-  springboot:
-    image: springboot:latest
+  api:
+    image: api:latest
+    container_name: api
     build:
-      context: ./
+      context: java_apps/api
       dockerfile: Dockerfile
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
     volumes:
-      - /data/springboot-docker-compose-app
+      - /data/api-docker-compose-app
     ports:
       - "8082:8080"
+    depends_on:
+      - broker
+
+  dbingest:
+    image: dbingest:latest
+    container_name: dbingest
+    build:
+      context: java_apps/dbingest
+      dockerfile: Dockerfile
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
+    volumes:
+      - /data/dbingest-docker-compose-app
+    depends_on:
+      - broker
+
+  appconsole:
+    image: appconsole:latest
+    restart: always
+    container_name: appconsole
+    build:
+      context: java_apps/appconsole
+      dockerfile: Dockerfile
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
+    volumes:
+      - /data/appconsole-docker-compose-app
+    depends_on:
+      - broker
+      - fetchtreat
+    stdin_open: true
+    tty: true
+
+  fetchtreat:
+    image: fetchtreat:latest
+    container_name: fetchtreat
+    build:
+      context: java_apps/fetchtreat
+      dockerfile: Dockerfile
+    environment:
+      SPRING_KAFKA_BOOTSTRAPSERVERS: broker:29092
+    volumes:
+      - /data/fetchtreat-docker-compose-app
+    depends_on:
+      - broker
+
+
