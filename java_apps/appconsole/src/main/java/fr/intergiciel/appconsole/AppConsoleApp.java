@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.Scanner;
 
 
+import fr.intergiciel.appconsole.kafka.ConsoleAppConsumer;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -28,6 +31,15 @@ public class AppConsoleApp {
         this.commandMap = new HashMap<>();
         initializeCommands();
     }
+
+    public void saveJsonToFile(JSONObject jsonObject, String fileName) {
+        try (FileWriter file = new FileWriter(fileName)) {
+            file.write(jsonObject.toString());
+            file.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     private void initializeCommands() {
         try {
             commandMap.put("get_all_patients", targetObject.getClass().getMethod("getAllPatients"));
@@ -43,7 +55,7 @@ public class AppConsoleApp {
         }
     }
 
-    public void executeCommand(String commandLine) {
+    public boolean executeCommand(String commandLine) {
         String[] commandParts = commandLine.split("\\s+", 2);
         String command = commandParts[0];
         String parameter = commandParts.length > 1 ? commandParts[1] : null;
@@ -56,27 +68,49 @@ public class AppConsoleApp {
                 } else {
                     method.invoke(targetObject);
                 }
+
+                return true;
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
         } else {
             System.out.println("Commande inconnue");
         }
+
+        return false;
     }
 
 
     public static void main(String[] args) {
         YourClass yourClass = new YourClass(new ConsoleProd("broker:29092", "topic2"));
+        ConsoleAppConsumer consoleAppConsumer = new ConsoleAppConsumer("broker:29092", "topic3");
         AppConsoleApp appConsoleApp = new AppConsoleApp(yourClass);
 
         Scanner scanner = new Scanner(System.in);
         String input;
+        String message;
 
         do {
             System.out.print("Entrez une commande: ");
             input = scanner.nextLine();
-            if (!input.equals("exit")) {
-                appConsoleApp.executeCommand(input);
+            if (!input.equals("exit") && !input.equals("help")) {
+                var state = appConsoleApp.executeCommand(input);
+                if(state && !input.equals("help")){
+                    System.out.println("En attente d'une réponse...");
+                    do {
+                        message = consoleAppConsumer.consumeMessages();
+                    } while (message == null);
+                    System.out.println(message);
+                }
+            }else if (input.equals("help")) {
+                var state = appConsoleApp.executeCommand(input);
+                if(!state){
+                    System.out.println("Une erreur est survenue lors de l'exécution de la commande");
+                }
+            }else if (input.equals("exit")) {
+                System.out.println("Fermeture de l'application...");
+                scanner.close();
+                System.exit(0);
             }
         } while (true);
 
@@ -99,31 +133,31 @@ class YourClass {
     }
 
     public void getPatientByPID(String pid) {
-        kafkaProducer.sendMessage("getPatientByPID + " + pid);
+        kafkaProducer.sendMessage("get_patient_by_pid " + pid);
         System.out.println("Fonction get_patient_by_pid exécutée avec PID: " + pid);
         // Implémentez la logique pour récupérer un patient par son PID
     }
 
     public void getPatientByName(String name) {
-        kafkaProducer.sendMessage("getPatientByName + " + name);
+        kafkaProducer.sendMessage("get_patient_by_name " + name);
         System.out.println("Fonction get_patient_by_name exécutée avec nom: " + name);
         // Implémentez la logique pour récupérer un patient par son nom
     }
 
     public void getPatientStayByPID(String pid) {
-        kafkaProducer.sendMessage("getPatientStayByPID + " + pid);
+        kafkaProducer.sendMessage("get_patient_stay_by_pid " + pid);
         System.out.println("Fonction get_patient_stay_by_pid exécutée avec PID: " + pid);
         // Implémentez la logique pour récupérer les séjours d'un patient par son PID
     }
 
     public void getPatientMovementsBySID(String sid) {
-        kafkaProducer.sendMessage("getPatientMovementsBySID + " + sid);
+        kafkaProducer.sendMessage("get_patient_movements_by_sid " + sid);
         System.out.println("Fonction get_patient_movements_by_sid exécutée avec SID: " + sid);
         // Implémentez la logique pour récupérer les mouvements d'un patient par son SID
     }
 
     public void exportDataToJson(String pid) {
-        kafkaProducer.sendMessage("exportDataToJson + " + pid);
+        kafkaProducer.sendMessage("export " + pid);
         System.out.println("Fonction export exécutée avec le PID: "+ pid);
         // Implémentez la logique pour exporter les données en JSON
     }
@@ -137,6 +171,7 @@ class YourClass {
         System.out.println("- get_patient_movements_by_sid (retourne tous les mouvements d’un patients par le numéro de séjour)");
         System.out.println("- export (Exporte les données de la base de données en JSON dans un fichier)");
         System.out.println("- help (Affiche la liste des commandes et une explication comme ci-dessus)");
+        System.out.println("- exit (Ferme l'application)");
         // Ajoutez d'autres commandes si nécessaire
     }
 }

@@ -35,7 +35,8 @@ services:
   mc:
     image: mirth450:latest
     build:
-      dockerfile: ./mirth/docker/Dockerfile
+      context: ./mirth/docker
+      dockerfile: Dockerfile
     container_name: mirth450
     hostname: mirth450
     restart: always
@@ -120,6 +121,7 @@ services:
       - /data/appconsole-docker-compose-app
     depends_on:
       - broker
+      - fetchtreat
     stdin_open: true
     tty: true
 
