@@ -60,9 +60,9 @@ public class FetchAppConsumer {
             }else if(Objects.equals(command, "get_patient_stay_by_pid") && parameter != null) {
                 return getPatientStayByPID(parameter);
             }else if(Objects.equals(command, "get_patient_movements_by_sid") && parameter != null) {
-                //return getPatientMovementsBySID(parameter);
+                return getPatientMovementsBySID(parameter);
             }else if(Objects.equals(command, "export") && parameter != null) {
-                //return exportDataToJson(parameter);
+//                return exportDataToJson(parameter);
             }else {
                 System.out.println("Commande inconnue");
             }
@@ -96,9 +96,7 @@ public class FetchAppConsumer {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if (patients.isEmpty()) {
-            System.out.println("patients is empty");
-            return ("Aucun résultat trouvé dans la base de données.");
+
         return patients;
     }
 
@@ -142,7 +140,7 @@ public class FetchAppConsumer {
         }
         if (patient == null) {
             System.out.println("patient is null");
-//          TODO : Erreur à traiter à un moment
+            //          TODO : Erreur à traiter à un moment
             return ("Aucun résultat trouvé dans la base de données.");
         }
         System.out.println("patient : " + patient.toString());
@@ -154,8 +152,11 @@ public class FetchAppConsumer {
         ArrayList<String> patients = new ArrayList<>();
 
         System.out.println(connection.toString());
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
 
         String query = "SELECT * FROM patient WHERE patient.birth_name LIKE ? OR patient.legal_name LIKE ? OR patient.first_name LIKE ?";
+//        String query = "SELECT * FROM patient WHERE patient.birth_name LIKE ?";
         try {
             statement = connection.prepareStatement(query);
             statement.setString(1, name);
@@ -176,64 +177,124 @@ public class FetchAppConsumer {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        if (patients.isEmpty()) {
-            System.out.println("patients is empty");
-            return ("Aucun résultat trouvé dans la base de données.");
-
         return patients;
     }
 
-    public ArrayList<String> getStaysByPatientID(String patientID) {
+    public Object getStayBySID(String stayID) {
+        Stay stay = null;
+        String query = "SELECT * FROM Stay WHERE num_sej = ?";
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            statement = connection.prepareStatement(query);
+            statement.setString(1, stayID);
+            try {
+                resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+
+                    java.sql.Date start_date= resultSet.getDate("start_date");
+
+                    java.sql.Date end_date= resultSet.getDate("end_date");
+
+                    // Assuming Patient class exists with appropriate constructor
+                    Object patient = getPatientByPID(resultSet.getString("patient_id"));
+                    if (patient instanceof Patient) {
+                        Patient patient1 = (Patient) patient;
+                        stay = new Stay(
+                                resultSet.getString("num_sej"),
+                                start_date,
+                                end_date,
+                                patient1
+                        );
+                    }else{
+                        System.out.println("Patient not found");
+                    }
+                }
+            }catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (stay == null) {
+            System.out.println("Stay not found");
+            return ("Aucun résultat trouvé dans la base de données.");
+        }
+        return stay;
+    }
+
+    public ArrayList<String> getPatientStayByPID(String patientID) {
         ArrayList<String> stays = new ArrayList<>();
         String query = "SELECT * FROM Stay WHERE patient_id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            statement = connection.prepareStatement(query);
             statement.setString(1, patientID);
-            try (ResultSet resultSet = statement.executeQuery()) {
+            try {
+                resultSet = statement.executeQuery();
                 while (resultSet.next()) {
 
                     java.sql.Date start_date= resultSet.getDate("start_date");
 
                     java.sql.Date end_date= resultSet.getDate("end_date");
-// Assuming Stay class exists with appropriate constructor
-                    Stay stay = new Stay(
-                            resultSet.getString("num_sej"),
-                            start_date,
-                            end_date,
-                            resultSet.getString("patient_id")
-                    );
-                    stays.add(Stay.toString());
+                    Object patient = getPatientByPID(patientID);
+                    if (patient instanceof Patient) {
+                        Patient patient1 = (Patient) patient;
+                        Stay stay = new Stay(
+                                resultSet.getString("num_sej"),
+                                start_date,
+                                end_date,
+                                patient1
+                        );
+                        stays.add(stay.toString());
+                    }else{
+                        System.out.println("Patient not found");
+                    }
+
                 }
+            }catch (SQLException e) {
+                e.printStackTrace();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        if (stays.isEmpty()) {
-            System.out.println("stays is empty");
-            return ("Aucun résultat trouvé dans la base de données.");
-        }
         return stays;
     }
 
-    public ArrayList<String> getMovementsByPatientID(String NumSej) {
+    public ArrayList<String> getPatientMovementsBySID(String NumSej) {
         ArrayList<String> movements = new ArrayList<>();
         String query = "SELECT * FROM Movement WHERE num_sej = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            statement = connection.prepareStatement(query);
             statement.setString(1, NumSej);
-            try (ResultSet resultSet = statement.executeQuery()) {
+            try {
+                resultSet = statement.executeQuery();
                 while (resultSet.next()) {
+                    Object stay = getStayBySID(NumSej);
+                    Object patient = getPatientByPID(resultSet.getString("patient_id"));
+                    if (stay instanceof Stay && patient instanceof Patient) {
+                        Stay stay1 = (Stay) stay;
+                        Patient patient1 = (Patient) patient;
+                        Movement movement = new Movement(
+                                resultSet.getInt("movement_id"),
+                                resultSet.getString("service"),
+                                resultSet.getString("room"),
+                                resultSet.getString("bed"),
+                                stay1,
+                                patient1
+                        );
+                        movements.add(movement.toString());
 // Assuming Movement class exists with appropriate constructor
-                    Movement movement = new Movement(
-                            resultSet.getInt("movement_id"),
-                            resultSet.getString("service"),
-                            resultSet.getString("room"),
-                            resultSet.getString("bed"),
-                            resultSet.getString("num_sej"),
-                            resultSet.getString("patient_id")
-                    );
-                    movements.add(Movement.toString());
+                    }else {
+                        System.out.println("Stay or Patient not found");
+                    }
                 }
+            }catch (SQLException e) {
+                e.printStackTrace();
             }
         } catch (SQLException e) {
             e.printStackTrace();
