@@ -29,10 +29,10 @@ docker attach appconsole
 
 ## Docker Containers
 We have 8 container running :
-- 'brocker' -> A Broker container
-- 'zookeeper' -> A Zookeper container
-- 'mirth450'-> A Mirth Connect container
-- 'mcdb' -> A Database container with the PostgreSQL database
+- 'brocker' -> The Broker container
+- 'zookeeper' -> The Zookeper container
+- 'mirth450'-> The Mirth Connect container
+- 'mcdb' -> The Database container with the PostgreSQL database
 - 'api' -> A container running the API that receive the json from mirth (Producer Pr1 in the schema above)
 - 'dbingest' -> A container that uses the json to put data in the database (consumer Cs1 in the schema above)
 - 'appconsole' -> A container running the console that will allow us to send commands and display answers (Producer Pr2 and Consumer Cs3 in the schema above)
@@ -52,7 +52,7 @@ On the other side, there is two applications that are producers and consumers in
 - export (Export the data of a patient in a json thanks to their id PID-3)
 - help (Display the list of commands and their description given above)
 - exit (Close the app)
-- 
+
 ## Team
 [Léo Wadin](https://github.com/ArKc0s)<br>
 [Elena Beylat](https://github.com/PetitCheveu)<br>
