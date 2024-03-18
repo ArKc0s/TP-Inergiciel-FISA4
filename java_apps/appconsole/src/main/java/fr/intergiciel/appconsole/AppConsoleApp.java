@@ -32,14 +32,6 @@ public class AppConsoleApp {
         initializeCommands();
     }
 
-    public void saveJsonToFile(JSONObject jsonObject, String fileName) {
-        try (FileWriter file = new FileWriter(fileName)) {
-            file.write(jsonObject.toString());
-            file.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
     private void initializeCommands() {
         try {
             commandMap.put("get_all_patients", targetObject.getClass().getMethod("getAllPatients"));
