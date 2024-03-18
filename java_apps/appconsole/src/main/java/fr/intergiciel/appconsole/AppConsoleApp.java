@@ -98,6 +98,10 @@ public class AppConsoleApp {
                 if(!state){
                     System.out.println("Une erreur est survenue lors de l'exécution de la commande");
                 }
+            }else if (input.equals("exit")) {
+                System.out.println("Fermeture de l'application...");
+                scanner.close();
+                System.exit(0);
             }
         } while (true);
 
@@ -144,7 +148,7 @@ class YourClass {
     }
 
     public void exportDataToJson(String pid) {
-        kafkaProducer.sendMessage("exportDataToJson " + pid);
+        kafkaProducer.sendMessage("export " + pid);
         System.out.println("Fonction export exécutée avec le PID: "+ pid);
         // Implémentez la logique pour exporter les données en JSON
     }
@@ -158,6 +162,7 @@ class YourClass {
         System.out.println("- get_patient_movements_by_sid (retourne tous les mouvements d’un patients par le numéro de séjour)");
         System.out.println("- export (Exporte les données de la base de données en JSON dans un fichier)");
         System.out.println("- help (Affiche la liste des commandes et une explication comme ci-dessus)");
+        System.out.println("- exit (Ferme l'application)");
         // Ajoutez d'autres commandes si nécessaire
     }
 }

@@ -30,6 +30,8 @@ public class FetchTreatApp {
                     kafkaProducer.sendMessage(result.toString());
                 } else if (result instanceof Stay) {
                     kafkaProducer.sendMessage(result.toString());
+                } else if (result instanceof Movement) {
+                    kafkaProducer.sendMessage(result.toString());
                 } else {
                     kafkaProducer.sendMessage(result.toString());
                 }

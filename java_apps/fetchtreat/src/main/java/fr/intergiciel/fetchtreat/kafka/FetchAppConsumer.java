@@ -13,6 +13,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.lang.reflect.InvocationTargetException;
 
 public class FetchAppConsumer {
@@ -62,7 +65,7 @@ public class FetchAppConsumer {
             }else if(Objects.equals(command, "get_patient_movements_by_sid") && parameter != null) {
                 return getPatientMovementsBySID(parameter);
             }else if(Objects.equals(command, "export") && parameter != null) {
-//                return exportDataToJson(parameter);
+                return exportDataToJson(parameter);
             }else {
                 System.out.println("Commande inconnue");
             }
@@ -301,6 +304,36 @@ public class FetchAppConsumer {
         }
         return movements;
     }
+
+
+
+    public Object exportDataToJson(String patientID) {
+        try {
+            Object patientObj = getPatientByPID(patientID);
+            if (patientObj instanceof Patient) {
+                Patient patient = (Patient) patientObj;
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("patientID", patient.getPatientId());
+                jsonObject.put("birthName", patient.getBirthName());
+                jsonObject.put("legalName", patient.getLegalName());
+                jsonObject.put("firstName", patient.getFirstName());
+                jsonObject.put("prefix", patient.getPrefix());
+
+                // Convert birthDate to string before putting it into the JSON object
+                String birthDateStr = patient.getBirthDate().toLocalDate().toString();
+                jsonObject.put("birthDate", birthDateStr);
+
+                return jsonObject;
+            } else {
+                return "Not found";
+            }
+        }catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return "WTF";
+    }
+
+
 
     public void close() {
         kafkaConsumer.close();
